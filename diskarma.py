@@ -5,7 +5,6 @@ import re
 from psycopg2.sql import Identifier, SQL
 from discord.ext import commands
 
-# TODO Multi + and Multi -
 # TODO Handle just '++' and just '--' (add karma to the bot?) (Or get the last message in the channel and add karma to the author?)
 # TODO '+?' '-?' for a random amount of karma?
 # TODO Can I check edited messages
@@ -34,12 +33,13 @@ def __is_karma_message(message):
     id = None
     action = None
     count = 0
-    result = re.match('^([^\+]*)(\+\++)$', message.content)
+    # This regex is a little convoluted so it can handle "I need a +15 rune ++++"
+    result = re.match('^((?:[\+]*[^\+]*[\+]*[^\+]+)*)(\+\++)$', message.content)
     if result:
         id = result.group(1).strip()
         action = 'add'
         count = len(result.group(2)) - 1
-    result = re.match('^([^\-]*)(\-\-+)$', message.content)
+    result = re.match('^((?:[\-]*[^\-]*[\-]*[^\-]+)*)(\-\-+)$', message.content)
     if result:
         id = result.group(1).strip()
         action = 'subtract'
