@@ -1,17 +1,18 @@
 import discord
 import os
 import psycopg2
+import re
 from psycopg2.sql import Identifier, SQL
 from discord.ext import commands
 
 # TODO Multi + and Multi -
-# TODO Make sure to clear spaces out of the hash ids 'bob ++' should be 'bob' not 'bob ' 
 # TODO Handle just '++' and just '--' (add karma to the bot?) (Or get the last message in the channel and add karma to the author?)
 # TODO '+?' '-?' for a random amount of karma?
 # TODO Can I check edited messages
-# TODO Need storage
 # TODO Karma user blacklist ?
 # TODO Store message id?
+# TODO Karma attack?
+# TODO Spend karma to reduce karma? (???)
 #   When bot comes online scan history for hits until we find matching id?
 
 DATABASE_URL = os.environ['DATABASE_URL']
@@ -23,7 +24,8 @@ cur = conn.cursor()
 bot = commands.Bot(command_prefix='>')
 
 def __self_karma_check(message):
-    if message.content.endswith('++') or message.content.endswith('--'):
+    id, action, count = __is_karma_message(message)
+    if action == 'add' or action == 'subtract':
            if message.author in message.mentions:
                return True
            return False
@@ -31,16 +33,21 @@ def __self_karma_check(message):
 def __is_karma_message(message):
     id = None
     action = None
-    if message.content.endswith('++'):
-        id = message.content[0:-2].strip()
+    count = 0
+    result = re.match('^([^\+]*)(\+\++)$', message.content)
+    if result:
+        id = result.group(1).strip()
         action = 'add'
-    elif message.content.endswith('--'):
-        id = message.content[0:-2].strip()
+        count = len(result.group(2)) - 1
+    result = re.match('^([^\-]*)(\-\-+)$', message.content)
+    if result:
+        id = result.group(1).strip()
         action = 'subtract'
-    elif message.content.endswith('=='):
+        count = len(result.group(2)) - 1
+    if message.content.endswith('=='):
         id = message.content[0:-2].strip()
         action = 'show'
-    return (id, action)
+    return (id, action, count)
 
 def __db_insert(id, score):
     cur.execute(SQL("INSERT into {} (id, score) VALUES (%s, %s);").format(Identifier(TABLE_NAME)), (id, score))
@@ -55,7 +62,7 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    id, action = __is_karma_message(message)
+    id, action, count = __is_karma_message(message)
     score = 0
     if action is None:
         return
@@ -69,17 +76,17 @@ async def on_message(message):
 
     if action == 'add':
         if not results:
-            score += 1
+            score += count
             __db_insert(id, score)
         else:
-            score = results[0][1] + 1
+            score = results[0][1] + count
             __db_update(id, score)
     elif action == 'subtract':
         if not results:
-            score -= 1
+            score -= count
             __db_insert(id, score)
         else:
-            score = results[0][1] - 1
+            score = results[0][1] - count
             __db_update(id, score)
     elif action == 'show':
         if not results:
@@ -93,7 +100,7 @@ async def on_message_delete(message):
     if message.author == bot.user:
         return
 
-    id, action = __is_karma_message(message)
+    id, action, count = __is_karma_message(message)
     score = 0
     if action == None:
         return
@@ -107,15 +114,15 @@ async def on_message_delete(message):
 
     if action == 'add':
         if not results:
-            __db_insert(id, score-1)
+            __db_insert(id, score - count)
         else:
-            score = results[0][1] - 1
+            score = results[0][1] - count
             __db_update(id, score)
     elif action == 'subtract':
         if not results:
-            __db_insert(id, score+1)
+            __db_insert(id, score + count)
         else:
-            score = results[0][1] + 1
+            score = results[0][1] + count
             __db_update(id, score)
     elif action == 'show':
         if not results:
