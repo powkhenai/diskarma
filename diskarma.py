@@ -69,13 +69,15 @@ async def on_message(message):
 
     if action == 'add':
         if not results:
-            __db_insert(id, 1)
+            score += 1
+            __db_insert(id, score)
         else:
             score = results[0][1] + 1
             __db_update(id, score)
     elif action == 'subtract':
         if not results:
-            __db_insert(id, -1)
+            score -= 1
+            __db_insert(id, score)
         else:
             score = results[0][1] - 1
             __db_update(id, score)
@@ -105,13 +107,13 @@ async def on_message_delete(message):
 
     if action == 'add':
         if not results:
-            __db_insert(id, score)
+            __db_insert(id, score-1)
         else:
             score = results[0][1] - 1
             __db_update(id, score)
     elif action == 'subtract':
         if not results:
-            __db_insert(id, score)
+            __db_insert(id, score+1)
         else:
             score = results[0][1] + 1
             __db_update(id, score)
