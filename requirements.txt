@@ -6,4 +6,5 @@ discord.py==1.5.1
 idna==2.10
 multidict==4.7.6
 psycopg2-binary==2.8.6
+regex==2020.10.28
 yarl==1.5.1

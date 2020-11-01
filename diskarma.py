@@ -1,7 +1,7 @@
 import discord
 import os
 import psycopg2
-import re
+import regex
 from psycopg2.sql import Identifier, SQL
 from discord.ext import commands
 
@@ -22,8 +22,7 @@ cur = conn.cursor()
 
 bot = commands.Bot(command_prefix='>')
 
-def __self_karma_check(message):
-    id, action, count = __is_karma_message(message)
+def __self_karma_check(action, message):
     if action == 'add' or action == 'subtract':
            if message.author in message.mentions:
                return True
@@ -34,19 +33,23 @@ def __is_karma_message(message):
     action = None
     count = 0
     # This regex is a little convoluted so it can handle "I need a +15 rune ++++"
-    result = re.match('^((?:[\+]*[^\+]*[\+]*[^\+]+)*)(\+\++)$', message.content)
+    print('before regex: {}'.format(message.content))
+    result = regex.match('^((?:[\+]*[^\+]*[\+]*[^\+]+)*+)(\+\++)$', message.content)
     if result:
         id = result.group(1).strip()
         action = 'add'
         count = len(result.group(2)) - 1
-    result = re.match('^((?:[\-]*[^\-]*[\-]*[^\-]+)*)(\-\-+)$', message.content)
+    print('Finished first check')
+    result = regex.match('^((?:[\-]*[^\-]*[\-]*[^\-]+)*+)(\-\-+)$', message.content)
     if result:
         id = result.group(1).strip()
         action = 'subtract'
         count = len(result.group(2)) - 1
+    print('Finished second check')
     if message.content.endswith('=='):
         id = message.content[0:-2].strip()
         action = 'show'
+    print('regex return')
     return (id, action, count)
 
 def __db_insert(id, score):
@@ -59,15 +62,17 @@ def __db_update(id, score):
 
 @bot.event
 async def on_message(message):
+    print('on_message start: {}'.format(message))
     if message.author == bot.user:
         return
 
+    print('Doing karma message check (regex)')
     id, action, count = __is_karma_message(message)
     score = 0
     if action is None:
         return
 
-    if __self_karma_check(message):
+    if __self_karma_check(action, message):
         await message.channel.send('You can\'t karma yourself bro... Uncool')
         return
 
@@ -105,7 +110,7 @@ async def on_message_delete(message):
     if action == None:
         return
 
-    if __self_karma_check(message):
+    if __self_karma_check(action, message):
         await message.channel.send('You can\'t karma yourself bro... Uncool')
         return
 
