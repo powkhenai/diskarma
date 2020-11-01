@@ -33,23 +33,19 @@ def __is_karma_message(message):
     action = None
     count = 0
     # This regex is a little convoluted so it can handle "I need a +15 rune ++++"
-    print('before regex: {}'.format(message.content))
     result = regex.match('^((?:[\+]*[^\+]*[\+]*[^\+]+)*+)(\+\++)$', message.content)
     if result:
         id = result.group(1).strip()
         action = 'add'
         count = len(result.group(2)) - 1
-    print('Finished first check')
     result = regex.match('^((?:[\-]*[^\-]*[\-]*[^\-]+)*+)(\-\-+)$', message.content)
     if result:
         id = result.group(1).strip()
         action = 'subtract'
         count = len(result.group(2)) - 1
-    print('Finished second check')
     if message.content.endswith('=='):
         id = message.content[0:-2].strip()
         action = 'show'
-    print('regex return')
     return (id, action, count)
 
 def __db_insert(id, score):
@@ -62,11 +58,9 @@ def __db_update(id, score):
 
 @bot.event
 async def on_message(message):
-    print('on_message start: {}'.format(message))
     if message.author == bot.user:
         return
 
-    print('Doing karma message check (regex)')
     id, action, count = __is_karma_message(message)
     score = 0
     if action is None:
