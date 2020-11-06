@@ -56,6 +56,16 @@ def __db_update(id, score):
     cur.execute(SQL("UPDATE {} SET score = %s WHERE id = %s;").format(Identifier(TABLE_NAME)), (score, id))
     conn.commit()
 
+
+@bot.command()
+async def karma(ctx):
+    cur.execute(SQL("SELECT * FROM {};").format(Identifier(TABLE_NAME)),())
+    results = cur.fetchall()
+    response = 'Your requested Karma digest:\n'
+    for result in results:
+        response = '{}      {}:{}\n'.format(response, result[0], result[1])
+    await ctx.author.send(response)
+
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
@@ -64,6 +74,7 @@ async def on_message(message):
     id, action, count = __is_karma_message(message)
     score = 0
     if action is None:
+        await bot.process_commands(message)
         return
 
     if __self_karma_check(action, message):
@@ -130,10 +141,6 @@ async def on_message_delete(message):
             score = results[0][1]
 
     await message.channel.send('A gift of Karma has been rescinded... {0} has {1} karma!'.format(id, score))
-
-@bot.command()
-async def ping(ctx):
-    await ctx.send('pong')
 
 @bot.event
 async def on_ready():
