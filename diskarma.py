@@ -56,14 +56,24 @@ def __db_update(id, score):
     cur.execute(SQL("UPDATE {} SET score = %s WHERE id = %s;").format(Identifier(TABLE_NAME)), (score, id))
     conn.commit()
 
+def __db_delete(id):
+    cur.execute(SQL("DELETE FROM {} WHERE id = %s;").format(Identifier(TABLE_NAME)), (id,))
+    conn.commit()
 
-@bot.command()
+@bot.command(hidden=True)
+async def delete(ctx):
+    id = ctx.message.content[8:]
+    __db_delete(id)
+    await ctx.send('All karma data for "{}" has been deleted. ByeBye!'.format(id))
+
+@bot.command(description='Get a karma report as a DM', brief='Get a karma report as a DM')
 async def karma(ctx):
     cur.execute(SQL("SELECT * FROM {};").format(Identifier(TABLE_NAME)),())
     results = cur.fetchall()
     response = 'Your requested Karma digest:\n'
     for result in results:
         response = '{}      {}:{}\n'.format(response, result[0], result[1])
+    await ctx.send("Alright, sending {} a karma digest as a DM".format(ctx.author.display_name))
     await ctx.author.send(response)
 
 @bot.event
