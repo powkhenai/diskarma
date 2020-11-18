@@ -11,7 +11,9 @@ from discord.ext import commands
 # TODO Karma user blacklist ?
 # TODO Store message id?
 # TODO Karma attack?
+# TODO Karma reason?
 # TODO Spend karma to reduce karma? (???)
+# TODO I should probably catch SIGTERM and properly close my DB connection
 #   When bot comes online scan history for hits until we find matching id?
 
 DATABASE_URL = os.environ['DATABASE_URL']
