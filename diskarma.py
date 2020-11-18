@@ -4,6 +4,7 @@ import psycopg2
 import regex
 from psycopg2.sql import Identifier, SQL
 from discord.ext import commands
+from swdb import swdb
 
 # TODO Handle just '++' and just '--' (add karma to the bot?) (Or get the last message in the channel and add karma to the author?)
 # TODO '+?' '-?' for a random amount of karma?
@@ -77,6 +78,12 @@ async def karma(ctx):
         response = '{}      {}:{}\n'.format(response, result[0], result[1])
     await ctx.send("Alright, sending {} a karma digest as a DM".format(ctx.author.display_name))
     await ctx.author.send(response)
+
+@bot.command(description='Take a Summoners war awakened monster name, and tell me what monster it is', brief='What monster is this name')
+async def who_is(ctx):
+    name = ctx.message.content[8:]
+    sw = swdb()
+    await ctx.send(sw.who_is(name))
 
 @bot.event
 async def on_message(message):
