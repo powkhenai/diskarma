@@ -31,6 +31,12 @@ def __self_karma_check(action, message):
                return True
            return False
 
+# We need to check if discord added an ! to our id noting we're using a nickname, and then remove it...
+def __id_cleanse(user_id):
+    if regex.match('^<@!\d\d\d+>$', user_id):
+        return user_id.replace('!', '')
+    return user_id
+
 def __is_karma_message(message):
     id = None
     action = None
@@ -38,16 +44,16 @@ def __is_karma_message(message):
     # This regex is a little convoluted so it can handle "I need a +15 rune ++++"
     result = regex.match('^((?:[\+]*[^\+]*[\+]*[^\+]+)*+)(\+\++)$', message.content)
     if result:
-        id = result.group(1).strip()
+        id = __id_cleanse(result.group(1).strip())
         action = 'add'
         count = len(result.group(2)) - 1
     result = regex.match('^((?:[\-]*[^\-]*[\-]*[^\-]+)*+)(\-\-+)$', message.content)
     if result:
-        id = result.group(1).strip()
+        id = __id_cleanse(result.group(1).strip())
         action = 'subtract'
         count = len(result.group(2)) - 1
     if message.content.endswith('=='):
-        id = message.content[0:-2].strip()
+        id = __id_cleanse(message.content[0:-2].strip())
         action = 'show'
     return (id, action, count)
 
