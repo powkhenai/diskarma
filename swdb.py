@@ -12,17 +12,15 @@ class SummonersWarDB():
         """Query the api by the monster name and return an id number for it's awakened/unawakened state"""
         url = '{0}monsters'.format(self.__url_prefix)
         payload = {'name': name}
-        if (element is not None):
+        if element is not None:
             payload['element'] = element
         response = requests.request('get', url, params=payload)
         if response.json()['results']:
             monster = response.json()['results'][0]
             if monster['awakens_to'] is None:
                 return monster['awakens_from']
-            else:
-                return monster['awakens_to']
-        else:
-            return None
+            return monster['awakens_to']
+        return None
 
 
     def query_id(self, mon_id):

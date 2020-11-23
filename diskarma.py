@@ -7,7 +7,7 @@ from psycopg2.sql import Identifier, SQL
 from discord.ext import commands
 from swdb import SummonersWarDB
 
-# TODO Handle just '++' and just '--' (add karma to the bot?) 
+# TODO Handle just '++' and just '--' (add karma to the bot?)
 #   (Or get the last message in the channel and add karma to the author?)
 # TODO '+?' '-?' for a random amount of karma?
 # TODO Can I check edited messages
@@ -33,11 +33,12 @@ def __self_karma_check(action, message):
         if message.author in message.mentions:
             return True
         return False
+    return False
 
 # We need to check if discord added an ! to our id noting we're using a nickname, and then remove it...
 def __id_cleanse(user_id):
     """Helper for trying to make mention ids more consistent to keep karma scores sane"""
-    if regex.match('^<@!\d\d\d+>$', user_id):
+    if regex.match(r'^<@!\d\d\d+>$', user_id):
         return user_id.replace('!', '')
     return user_id
 
@@ -62,7 +63,7 @@ def __is_karma_message(message):
         action = 'show'
     return (user_id, action, count)
 
-def __db_insert(id, score):
+def __db_insert(user_id, score):
     """Database helper method for INSERT"""
     cur.execute(SQL("INSERT into {} (id, score) VALUES (%s, %s);").format(Identifier(TABLE_NAME)), (user_id, score))
     conn.commit()
@@ -95,12 +96,13 @@ async def karma(ctx):
     await ctx.send("Alright, sending {} a karma digest as a DM".format(ctx.author.display_name))
     await ctx.author.send(response)
 
-@bot.command(description='Take a Summoners war awakened monster name, and tell me what monster it is', brief='What monster is this name')
+@bot.command(description='Take a Summoners war awakened monster name, and tell me what monster it is',
+             brief='What monster is this name')
 async def who_is(ctx):
     """Bot command to cross reference monster names in Summoners War"""
     name = ctx.message.content[8:]
-    sw = SummonersWarDB()
-    mon_dict = sw.who_is(name)
+    swdb = SummonersWarDB()
+    mon_dict = swdb.who_is(name)
     monster = discord.Embed(title=mon_dict['title'])
     monster.set_image(url=mon_dict['set_image'])
     await ctx.send(embed=monster)
@@ -153,7 +155,7 @@ async def on_message_delete(message):
 
     user_id, action, count = __is_karma_message(message)
     score = 0
-    if action == None:
+    if action is None:
         return
 
     if __self_karma_check(action, message):
