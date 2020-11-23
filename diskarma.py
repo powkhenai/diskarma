@@ -89,7 +89,10 @@ async def karma(ctx):
 async def who_is(ctx):
     name = ctx.message.content[8:]
     sw = swdb()
-    await ctx.send(sw.who_is(name))
+    mon_dict = sw.who_is(name)
+    monster = discord.Embed(title=mon_dict['title'])
+    monster.set_image(url=mon_dict['set_image'])
+    await ctx.send(embed=monster)
 
 @bot.event
 async def on_message(message):
