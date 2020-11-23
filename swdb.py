@@ -35,7 +35,7 @@ class SummonersWarDB():
         type_id = None
         send_awakened = False
         if ' ' in name:
-            element, tmp_name = name.split(' ')
+            element, tmp_name = name.split(' ', maxsplit=1)
             if element.lower() in ['wind', 'fire', 'water', 'light', 'dark']:
                 send_awakened = True
                 name = tmp_name
@@ -56,4 +56,4 @@ class SummonersWarDB():
 if __name__ == '__main__':
     sw = SummonersWarDB()
     print(sw.who_is('elsharion'))
-    print(sw.who_is('Wind Phoenix'))
+    print(sw.who_is('Water Hell Lady'))
