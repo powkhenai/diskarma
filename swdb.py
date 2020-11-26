@@ -17,7 +17,7 @@ class SummonersWarDB():
         response = requests.request('get', url, params=payload)
         if response.json()['results']:
             monster = response.json()['results'][0]
-            if monster['awakens_to'] is None:
+            if monster['awakens_from'] is not None:
                 return monster['awakens_from']
             return monster['awakens_to']
         return None
@@ -57,3 +57,4 @@ if __name__ == '__main__':
     sw = SummonersWarDB()
     print(sw.who_is('elsharion'))
     print(sw.who_is('Water Hell Lady'))
+    print(sw.who_is('shamann'))
